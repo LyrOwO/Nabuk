@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
+import 'pages/home_page.dart';
+import 'pages/books_page.dart';
+import 'pages/favorites_page.dart';
+import 'pages/profile_page.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(MyApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+    return MaterialApp(
+      title: 'Bibliothèque en Ligne',
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/',
+      routes: {
+        '/': (context) => HomePage(),
+        '/books': (context) => BooksPage(),
+        '/favorites': (context) => FavoritesPage(),
+        '/profile': (context) => ProfilePage(),
+      },
     );
   }
 }
