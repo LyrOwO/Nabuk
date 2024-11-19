@@ -49,7 +49,7 @@ class FavoritesPage extends StatelessWidget {
           ),
 
           // Footer
-          FooterNavigation(currentIndex: 2),
+          FooterNavigation(currentIndex: 3),
         ],
       ),
     );

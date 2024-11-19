@@ -3,6 +3,7 @@ import 'pages/home_page.dart';
 import 'pages/books_page.dart';
 import 'pages/favorites_page.dart';
 import 'pages/profile_page.dart';
+import 'pages/shelves_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
         '/books': (context) => BooksPage(),
         '/favorites': (context) => FavoritesPage(),
         '/profile': (context) => ProfilePage(),
+        '/shelves': (context) => ShelvesPage(), // Ajout de la page
       },
     );
   }

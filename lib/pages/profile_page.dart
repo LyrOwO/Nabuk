@@ -60,7 +60,7 @@ class ProfilePage extends StatelessWidget {
           ),
 
           // Footer
-          FooterNavigation(currentIndex: 3),
+          FooterNavigation(currentIndex: 4),
         ],
       ),
     );
