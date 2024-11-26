@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'pages/home_page.dart';
 import 'pages/books_page.dart';
+import 'pages/book_details_page.dart';
+import 'pages/shelves_page.dart';
 import 'pages/favorites_page.dart';
 import 'pages/profile_page.dart';
-import 'pages/shelves_page.dart';
+import 'pages/loans_page.dart'; // Importer la nouvelle page
 
 void main() {
   runApp(MyApp());
@@ -19,9 +21,10 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => HomePage(),
         '/books': (context) => BooksPage(),
+        '/shelves': (context) => ShelvesPage(),
         '/favorites': (context) => FavoritesPage(),
         '/profile': (context) => ProfilePage(),
-        '/shelves': (context) => ShelvesPage(), // Ajout de la page
+        '/loans': (context) => LoansPage(), // Nouvelle route
       },
     );
   }

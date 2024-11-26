@@ -18,6 +18,7 @@ class FooterNavigation extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
+          // Icône Accueil
           IconButton(
             icon: Icon(
               Icons.home,
@@ -27,6 +28,7 @@ class FooterNavigation extends StatelessWidget {
               if (currentIndex != 0) Navigator.pushNamed(context, '/');
             },
           ),
+          // Icône Livres
           IconButton(
             icon: Icon(
               Icons.book,
@@ -36,6 +38,7 @@ class FooterNavigation extends StatelessWidget {
               if (currentIndex != 1) Navigator.pushNamed(context, '/books');
             },
           ),
+          // Icône Étagères
           IconButton(
             icon: Icon(
               Icons.storage,
@@ -45,22 +48,34 @@ class FooterNavigation extends StatelessWidget {
               if (currentIndex != 2) Navigator.pushNamed(context, '/shelves');
             },
           ),
+          // Icône Prêts
           IconButton(
             icon: Icon(
-              Icons.favorite,
+              Icons.library_books,
               color: currentIndex == 3 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
             ),
             onPressed: () {
-              if (currentIndex != 3) Navigator.pushNamed(context, '/favorites');
+              if (currentIndex != 3) Navigator.pushNamed(context, '/loans');
             },
           ),
+          // Nouvelle icône pour Favoris
           IconButton(
             icon: Icon(
-              Icons.person,
+              Icons.favorite,
               color: currentIndex == 4 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
             ),
             onPressed: () {
-              if (currentIndex != 4) Navigator.pushNamed(context, '/profile');
+              if (currentIndex != 4) Navigator.pushNamed(context, '/favorites');
+            },
+          ),
+          // Icône Profil (dernier)
+          IconButton(
+            icon: Icon(
+              Icons.person,
+              color: currentIndex == 5 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
+            ),
+            onPressed: () {
+              if (currentIndex != 5) Navigator.pushNamed(context, '/profile');
             },
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../pages/book_details_page.dart';
 
 class BookCard extends StatelessWidget {
   final String title;
@@ -11,10 +12,23 @@ class BookCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
-        leading: Icon(Icons.book, color: const Color.fromRGBO(211, 180, 156, 50)),
+        leading: Icon(Icons.book, color: Color.fromRGBO(211, 180, 156, 50)),
         title: Text(title),
         subtitle: Text(author),
         trailing: Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BookDetailsPage(
+                title: title,
+                author: author,
+                description:
+                    "Ceci est une description fictive du livre '$title'. Vous pouvez personnaliser cette description dans votre base de données ou API.",
+              ),
+            ),
+          );
+        },
       ),
     );
   }
