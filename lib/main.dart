@@ -5,7 +5,9 @@ import 'pages/book_details_page.dart';
 import 'pages/shelves_page.dart';
 import 'pages/favorites_page.dart';
 import 'pages/profile_page.dart';
-import 'pages/loans_page.dart'; // Importer la nouvelle page
+import 'pages/loans_page.dart';
+import 'pages/barcode_scanner_page.dart';
+  
 
 void main() {
   runApp(MyApp());
@@ -24,7 +26,8 @@ class MyApp extends StatelessWidget {
         '/shelves': (context) => ShelvesPage(),
         '/favorites': (context) => FavoritesPage(),
         '/profile': (context) => ProfilePage(),
-        '/loans': (context) => LoansPage(), // Nouvelle route
+        '/loans': (context) => LoansPage(),
+        '/barcode_scanner': (context) => BarcodeScannerPage(),
       },
     );
   }

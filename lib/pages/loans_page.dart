@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'add_loan_form.dart'; // Importez la page du formulaire si elle est dans un fichier séparé
+import '../form/add_loan_form.dart'; // Importez la page du formulaire si elle est dans un fichier séparé
 
 class LoansPage extends StatefulWidget {
   @override

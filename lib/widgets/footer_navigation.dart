@@ -78,6 +78,15 @@ class FooterNavigation extends StatelessWidget {
               if (currentIndex != 5) Navigator.pushNamed(context, '/profile');
             },
           ),
+          IconButton(
+            icon: Icon(
+              Icons.qr_code_scanner,
+              color: currentIndex == 6 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
+            ),
+            onPressed: () {
+              if (currentIndex != 6) Navigator.pushNamed(context, '/barcode_scanner');
+            },
+          ),
         ],
       ),
     );
