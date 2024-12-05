@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pages/home_page.dart';
+import 'pages/login_page.dart';
 import 'pages/books_page.dart';
 import 'pages/book_details_page.dart';
 import 'pages/shelves_page.dart';
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => HomePage(),
+        '/login': (context) => LoginPage(),
         '/books': (context) => BooksPage(),
         '/shelves': (context) => ShelvesPage(),
         '/favorites': (context) => FavoritesPage(),

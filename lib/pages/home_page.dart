@@ -67,6 +67,15 @@ class HomePage extends StatelessWidget {
             ),
           ),
 
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/login');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color.fromRGBO(211, 180, 156, 50),
+            ),
+            child: Text('Se connecter'),
+          ),
           // Footer
           FooterNavigation(currentIndex: 0),
         ],
