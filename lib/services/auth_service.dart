@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -8,7 +9,7 @@ class AuthService {
 
   AuthService(this._dio);
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String username, String password) async {
     try {
       final response = await _dio.post(
         '/login',
@@ -28,15 +29,13 @@ class AuthService {
     return false;
   }
 
-  Future<bool> signup(String name, String email, String number, String password,
+  Future<bool> signup(String username, String password,
       String confirmPassword) async {
     try {
       final response = await _dio.post(
         '/register',
         data: jsonEncode({
           'username': username,
-          'email': email,
-          'birthday': birthday,
           'password': password,
           'confirmPassword': confirmPassword,
         }),
@@ -71,4 +70,5 @@ class AuthService {
     final payload =
         utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
     return json.decode(payload);
-  }
+ }
+}

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../services/auth_service.dart';
 
 
@@ -12,8 +13,8 @@ class AuthProvider with ChangeNotifier {
 
   bool get isAuthenticated => _isAuthenticated;
 
-  Future<bool> login(String email, String password) async {
-    var success = await _authService.login(email, password);
+  Future<bool> login(String username, String password) async {
+    var success = await _authService.login(username, password);
     print(success);
     if (success) {
       _isAuthenticated = true;
@@ -23,8 +24,8 @@ class AuthProvider with ChangeNotifier {
     return success;
   }
 
-  Future<bool> signup(String name, String email, String number, String password, String confirmPassword) async {
-    bool success = await _authService.signup(name, email, number, password, confirmPassword);
+  Future<bool> signup(String username, String password, String confirmPassword) async {
+    bool success = await _authService.signup(username, password, confirmPassword);
     print(success);
     if (success) {
       _isAuthenticated = true;

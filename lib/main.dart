@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nabuk/pages/signup_page.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart';
 import 'pages/books_page.dart';
@@ -29,7 +30,9 @@ class MyApp extends StatelessWidget {
         '/favorites': (context) => FavoritesPage(),
         '/profile': (context) => ProfilePage(),
         '/loans': (context) => LoansPage(),
+        '/signup': (context) => SignupPage(),
         '/barcode_scanner': (context) => BarcodeScannerPage(),
+
       },
     );
   }
