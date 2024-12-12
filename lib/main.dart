@@ -3,7 +3,6 @@ import 'package:nabuk/pages/signup_page.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart';
 import 'pages/books_page.dart';
-import 'pages/book_details_page.dart';
 import 'pages/shelves_page.dart';
 import 'pages/favorites_page.dart';
 import 'pages/profile_page.dart';

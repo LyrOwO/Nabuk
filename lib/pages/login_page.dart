@@ -1,16 +1,44 @@
 import 'package:flutter/material.dart';
+import '../services/api_services.dart';
+import '../services/token_service.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  _LoginPageState createState() => _LoginPageState();
+
 }
 
 class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+
+  String? _token;  // Variable pour afficher le token
+
+  Future<void> _login() async {
+    final token = await ApiService.fetchToken(
+      _usernameController.text,
+      _passwordController.text,
+    );
+
+    if (token != null) {
+      await TokenService.saveToken(token);
+
+      setState(() {
+        _token = token;
+      });
+
+       ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Connexion réussie !')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur de connexion.')),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +50,6 @@ class _LoginPageState extends State<LoginPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
-          key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -35,9 +62,9 @@ class _LoginPageState extends State<LoginPage> {
               TextFormField(
                 controller: _usernameController,
                 decoration: InputDecoration(
-                  labelText: 'Username',
+                  labelText: "Nom d'utilisateur",
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
+                  prefixIcon: Icon(Icons.login),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
@@ -73,16 +100,39 @@ class _LoginPageState extends State<LoginPage> {
               // Bouton de Connexion
               ElevatedButton(
                 onPressed: () {
-                  if (_formKey.currentState!.validate()) {
+                  final username = _usernameController.text.trim();
+                  final password = _passwordController.text.trim();
+
+                  if (username.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Veuillez entrer votre username.")),
+                    );
+//} else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(username)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Veuillez entrer un username valide.")),
+                    );
+                  } else if (password.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Veuillez entrer votre mot de passe.")),
+                    );
+                  } else if (password.length < 6) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Le mot de passe doit contenir au moins 6 caractères."),
+                      ),
+                    );
+                  } else {
+                    // Appelle la méthode de gestion de la connexion si tout est correct
                     _handleLogin();
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromRGBO(211, 180, 156, 50),
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  backgroundColor: const Color.fromRGBO(211, 180, 156, 50),
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                 ),
-                child: Text('Se connecter'),
+                child: const Text('Se connecter'),
               ),
+
               TextButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/signup');
@@ -91,6 +141,12 @@ class _LoginPageState extends State<LoginPage> {
                   "Pas de compte ? Inscrivez-vous",
                   style: TextStyle(color: Color.fromRGBO(211, 180, 156, 50)),
                 ),
+              ),
+              const SizedBox(height: 20),
+            if (_token != null)
+              Text(
+                'Token: $_token',
+                style: const TextStyle(color: Color.fromRGBO(211, 180, 156, 50), fontWeight: FontWeight.bold),
               ),
             ],
           ),
