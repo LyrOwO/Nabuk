@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/api_services.dart';
-import '../services/token_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,32 +12,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-
-  String? _token;  // Variable pour afficher le token
-
-  Future<void> _login() async {
-    final token = await ApiService.fetchToken(
-      _usernameController.text,
-      _passwordController.text,
-    );
-
-    if (token != null) {
-      await TokenService.saveToken(token);
-
-      setState(() {
-        _token = token;
-      });
-
-       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Connexion réussie !')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erreur de connexion.')),
-      );
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +73,6 @@ class _LoginPageState extends State<LoginPage> {
               // Bouton de Connexion
               ElevatedButton(
                 onPressed: () {
-                  _login;
                   final username = _usernameController.text.trim();
                   final password = _passwordController.text.trim();
 
@@ -124,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                     );
                   } else {
                     // Appelle la méthode de gestion de la connexion si tout est correct
-                    //_handleLogin();
+                    _handleLogin();
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -144,12 +116,6 @@ class _LoginPageState extends State<LoginPage> {
                   "Pas de compte ? Inscrivez-vous",
                   style: TextStyle(color: Color.fromRGBO(211, 180, 156, 50)),
                 ),
-              ),
-              const SizedBox(height: 20),
-              if (_token != null)
-                Text(
-                  'Token: $_token',
-                  style: const TextStyle(color: Color.fromRGBO(211, 180, 156, 50), fontWeight: FontWeight.bold),
               ),
             ],
           ),
