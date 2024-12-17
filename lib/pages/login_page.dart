@@ -100,6 +100,7 @@ class _LoginPageState extends State<LoginPage> {
               // Bouton de Connexion
               ElevatedButton(
                 onPressed: () {
+                  _login;
                   final username = _usernameController.text.trim();
                   final password = _passwordController.text.trim();
 
@@ -107,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Veuillez entrer votre username.")),
                     );
-//} else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(username)) {
+                    }  else if (!RegExp(r'^[\w-\.]{3,20}$').hasMatch(username)) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Veuillez entrer un username valide.")),
                     );
@@ -123,13 +124,15 @@ class _LoginPageState extends State<LoginPage> {
                     );
                   } else {
                     // Appelle la méthode de gestion de la connexion si tout est correct
-                    _handleLogin();
+                    //_handleLogin();
                   }
                 },
                 style: ElevatedButton.styleFrom(
+                  
                   backgroundColor: const Color.fromRGBO(211, 180, 156, 50),
                   padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                 ),
+                
                 child: const Text('Se connecter'),
               ),
 
@@ -143,10 +146,10 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 20),
-            if (_token != null)
-              Text(
-                'Token: $_token',
-                style: const TextStyle(color: Color.fromRGBO(211, 180, 156, 50), fontWeight: FontWeight.bold),
+              if (_token != null)
+                Text(
+                  'Token: $_token',
+                  style: const TextStyle(color: Color.fromRGBO(211, 180, 156, 50), fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -160,7 +163,7 @@ class _LoginPageState extends State<LoginPage> {
     final password = _passwordController.text.trim();
 
     // Exemple de vérification simple (remplacez par une vraie logique backend)
-    if (username == "user@example.com" && password == "password123") {
+    if (username == "admin" && password == "mdpadmin") {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Connexion réussie !')),
       );
