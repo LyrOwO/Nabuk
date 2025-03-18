@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
-class BarcodeScannerPage extends StatelessWidget {
+class BarcodeScannerPage extends StatefulWidget {
   const BarcodeScannerPage({Key? key}) : super(key: key);
+
+  @override
+  _BarcodeScannerPageState createState() => _BarcodeScannerPageState();
+}
+
+class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
+  String? scannedBarcode;
+
+  Future<void> scanBarcode() async {
+    try {
+      final barcode = await FlutterBarcodeScanner.scanBarcode(
+        '#ff6666', // Couleur du scanner
+        'Annuler', // Texte du bouton d'annulation
+        true, // Activer le flash
+        ScanMode.BARCODE, // Mode de scan
+      );
+      if (barcode != '-1') {
+        setState(() {
+          scannedBarcode = barcode;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        scannedBarcode = 'Erreur lors du scan : $e';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,16 +42,16 @@ class BarcodeScannerPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.qr_code_scanner,
-              size: 100,
-              color: Colors.grey,
-            ),
+            if (scannedBarcode != null)
+              Text(
+                'Code-barres scanné : $scannedBarcode',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
             SizedBox(height: 20),
-            Text(
-              'Fonctionnalité à venir :\nScanner le code-barres d’un livre',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ElevatedButton(
+              onPressed: scanBarcode,
+              child: Text('Scanner un code-barres'),
             ),
           ],
         ),

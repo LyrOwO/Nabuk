@@ -36,3 +36,25 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Nabuk Home"),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => BarcodeScannerPage()),
+            );
+          },
+          child: Text("Open Barcode Scanner"),
+        ),
+      ),
+    );
+  }
+}
