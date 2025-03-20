@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:barcode_scan2/barcode_scan2.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
   const BarcodeScannerPage({Key? key}) : super(key: key);
@@ -9,24 +9,17 @@ class BarcodeScannerPage extends StatefulWidget {
 }
 
 class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
-  String? scannedBarcode;
+  String scannedCode = "Aucun code scanné";
 
   Future<void> scanBarcode() async {
     try {
-      final barcode = await FlutterBarcodeScanner.scanBarcode(
-        '#ff6666', // Couleur du scanner
-        'Annuler', // Texte du bouton d'annulation
-        true, // Activer le flash
-        ScanMode.BARCODE, // Mode de scan
-      );
-      if (barcode != '-1') {
-        setState(() {
-          scannedBarcode = barcode;
-        });
-      }
+      var result = await BarcodeScanner.scan();
+      setState(() {
+        scannedCode = result.rawContent.isEmpty ? "Aucun code scanné" : result.rawContent;
+      });
     } catch (e) {
       setState(() {
-        scannedBarcode = 'Erreur lors du scan : $e';
+        scannedCode = "Erreur lors du scan : $e";
       });
     }
   }
@@ -35,23 +28,21 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color.fromRGBO(211, 180, 156, 50),
-        title: Text('Scanner un Livre'),
+        title: Text("Scanner de Codes-Barres"),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (scannedBarcode != null)
-              Text(
-                'Code-barres scanné : $scannedBarcode',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
+            Text(
+              scannedCode,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 18),
+            ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: scanBarcode,
-              child: Text('Scanner un code-barres'),
+              onPressed: scanBarcode, // Trigger scan only when this button is clicked
+              child: Text("Scanner un Code-Barres"),
             ),
           ],
         ),

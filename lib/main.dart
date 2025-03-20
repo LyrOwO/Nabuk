@@ -8,7 +8,6 @@ import 'pages/favorites_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/loans_page.dart';
 import 'pages/barcode_scanner_page.dart';
-  
 
 void main() {
   runApp(MyApp());
@@ -18,11 +17,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Bibliothèque en Ligne',
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
+      title: 'Bibliothèque en Ligne',
+      theme: ThemeData(
+        primaryColor: Color.fromRGBO(211, 180, 156, 50),
+      ),
+      initialRoute: '/login', // Démarrer sur la page de connexion
       routes: {
-        '/': (context) => HomePage(),
+        '/': (context) => HomePage(), // HomePage as the default route
         '/login': (context) => LoginPage(),
         '/books': (context) => BooksPage(),
         '/shelves': (context) => ShelvesPage(),
@@ -31,30 +33,9 @@ class MyApp extends StatelessWidget {
         '/loans': (context) => LoansPage(),
         '/signup': (context) => SignupPage(),
         '/barcode_scanner': (context) => BarcodeScannerPage(),
-
       },
     );
   }
 }
 
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Nabuk Home"),
-      ),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => BarcodeScannerPage()),
-            );
-          },
-          child: Text("Open Barcode Scanner"),
-        ),
-      ),
-    );
-  }
-}
+
