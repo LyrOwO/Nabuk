@@ -17,36 +17,43 @@ class HomePage extends StatelessWidget {
                 bottom: Radius.circular(20),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 40),
-                Text(
-                  'Bienvenue à la Bibliothèque',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    hintText: 'Rechercher un livre...',
-                    prefixIcon: Icon(Icons.search, color: Colors.grey),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide.none,
+            child: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Bienvenue à la Bibliothèque',
+                    style: TextStyle(
+                      color: const Color.fromRGBO(211, 180, 156, 50),
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 10),
+                  // Search bar zone
+                  Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: const Color.fromRGBO(211, 180, 156, 50),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Rechercher un livre...',
+                        prefixIcon: Icon(Icons.search, color: Colors.grey),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
-          // Faux contenu : Suggestions de livres
+          // Content
           Expanded(
             child: Container(
               color: Colors.grey[200],
@@ -67,15 +74,6 @@ class HomePage extends StatelessWidget {
             ),
           ),
 
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/login');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color.fromRGBO(211, 180, 156, 50),
-            ),
-            child: Text('Se connecter'),
-          ),
           // Footer
           FooterNavigation(currentIndex: 0),
         ],

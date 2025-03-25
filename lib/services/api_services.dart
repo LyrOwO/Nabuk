@@ -39,4 +39,49 @@ class ApiService {
       print('Erreur: ${response.statusCode}');
     }
   }
+
+  static const String googleBooksBaseUrl = 'https://www.googleapis.com/books/v1';
+
+  static Future<Map<String, dynamic>?> fetchBookByBarcode(String barcode) async {
+    final url = Uri.parse('$googleBooksBaseUrl/volumes?q=isbn:$barcode');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['totalItems'] > 0) {
+          return data['items'][0]['volumeInfo'];
+        } else {
+          return null; // No book found for the given barcode
+        }
+      } else {
+        throw Exception('Erreur: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des données : $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>?> getBookInfo(String isbn) async {
+    final url = Uri.parse('$googleBooksBaseUrl/volumes?q=isbn:$isbn');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(response.body);
+
+        if (data.containsKey('items')) {
+          return data['items'][0]['volumeInfo'];
+        } else {
+          return null; // No book found for the given ISBN
+        }
+      } else {
+        throw Exception('Erreur: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des données : $e');
+    }
+  }
 }
