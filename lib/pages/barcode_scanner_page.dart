@@ -10,7 +10,7 @@ class BarcodeScannerPage extends StatefulWidget {
 }
 
 class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
-  List<Map<String, String>> scannedBooks = []; // List to store scanned books
+  List<Map<String, dynamic>> scannedBooks = []; // List to store scanned books
 
   @override
   void initState() {
@@ -29,8 +29,14 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         if (bookInfo != null) {
           setState(() {
             scannedBooks.add({
+              'isbn': scannedCode,
               'title': bookInfo['title'] ?? 'Titre non disponible',
-              'imageURL': bookInfo['imageLinks']?['thumbnail'] ?? '',
+              'subtitle': bookInfo['subtitle'] ?? '',
+              'description': bookInfo['description'] ?? '',
+              'page_count': bookInfo['pageCount']?.toString() ?? '0',
+              'image_link_medium': bookInfo['imageLinks']?['medium'] ?? '',
+              'image_link_thumbnail': bookInfo['imageLinks']?['thumbnail'] ?? '',
+              'author': bookInfo['authors'] != null ? bookInfo['authors'][0] : 'Auteur non disponible',
             });
           });
           _showBookDialog(
@@ -45,6 +51,24 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
       }
     } catch (e) {
       _showErrorDialog("Erreur lors de la récupération des données : $e");
+    }
+  }
+
+  Future<void> sendBooksToApi() async {
+    try {
+      for (var book in scannedBooks) {
+        await ApiService.sendBookAndAuthorData(book); // Send each book and author to the API
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("${scannedBooks.length} livres envoyés à l'API !")),
+      );
+      setState(() {
+        scannedBooks.clear(); // Clear the list after sending
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur lors de l'envoi des données : $e")),
+      );
     }
   }
 
@@ -107,16 +131,6 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     );
   }
 
-  void _addAllBooksToLibrary() {
-    // Simulate adding books to the library
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("${scannedBooks.length} livres ajoutés à votre bibliothèque !")),
-    );
-    setState(() {
-      scannedBooks.clear(); // Clear the list after adding books
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,10 +145,11 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
               itemBuilder: (context, index) {
                 final book = scannedBooks[index];
                 return ListTile(
-                  leading: book['imageURL']!.isNotEmpty
-                      ? Image.network(book['imageURL']!, width: 50, height: 50, fit: BoxFit.cover)
+                  leading: book['image_link_thumbnail']!.isNotEmpty
+                      ? Image.network(book['image_link_thumbnail']!, width: 50, height: 50, fit: BoxFit.cover)
                       : Icon(Icons.book, size: 50),
                   title: Text(book['title']!),
+                  subtitle: Text(book['author']!),
                 );
               },
             ),
@@ -152,11 +167,11 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: _addAllBooksToLibrary, // Add all scanned books to the library
+                  onPressed: sendBooksToApi, // Send all scanned books to the API
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(211, 180, 156, 50),
                   ),
-                  child: Text("Terminer et Ajouter Tous les Livres"),
+                  child: Text("Terminer et Envoyer à l'API"),
                 ),
               ],
             ),
