@@ -29,14 +29,16 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         if (bookInfo != null) {
           setState(() {
             scannedBooks.add({
-              'isbn': scannedCode,
+              'industry_identifiers_identifier': scannedCode,
               'title': bookInfo['title'] ?? 'Titre non disponible',
               'subtitle': bookInfo['subtitle'] ?? '',
               'description': bookInfo['description'] ?? '',
-              'page_count': bookInfo['pageCount']?.toString() ?? '0',
+              'page_count': bookInfo['pageCount'] ?? 0,
               'image_link_medium': bookInfo['imageLinks']?['medium'] ?? '',
               'image_link_thumbnail': bookInfo['imageLinks']?['thumbnail'] ?? '',
-              'author': bookInfo['authors'] != null ? bookInfo['authors'][0] : 'Auteur non disponible',
+              'author_name': bookInfo['authors'] != null ? bookInfo['authors'][0] : 'Auteur inconnu',
+              'author_nickname': '', // Champ optionnel, vide par défaut
+              'author_birthday': null, // Date par défaut si inconnue
             });
           });
           _showBookDialog(
@@ -57,7 +59,16 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   Future<void> sendBooksToApi() async {
     try {
       for (var book in scannedBooks) {
-        await ApiService.sendBookAndAuthorData(book); // Send each book and author to the API
+        // Vérifier ou ajouter l'auteur
+        final authorId = await ApiService.getOrCreateAuthor(
+          name: book['author_name'],
+          nickname: book['author_nickname'],
+          birthday: book['author_birthday'] ?? '1900-01-01', // Date par défaut si inconnue
+        );
+        if (authorId != null) {
+          book['author_id'] = authorId; // Associer l'auteur au livre
+          await ApiService.sendBookData(book); // Envoyer les données du livre
+        }
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("${scannedBooks.length} livres envoyés à l'API !")),
@@ -150,7 +161,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                       ? Image.network(book['image_link_thumbnail']!, width: 50, height: 50, fit: BoxFit.cover)
                       : Icon(Icons.book, size: 50),
                   title: Text(book['title']!),
-                  subtitle: Text(book['author']!),
+                  subtitle: Text(book['author_name']!),
                 );
               },
             ),

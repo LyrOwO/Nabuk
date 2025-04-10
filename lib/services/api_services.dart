@@ -86,18 +86,27 @@ class ApiService {
     }
   }
 
-  static Future<void> sendBookData(Map<String, String> bookData) async {
-    final url = Uri.parse('$apiBaseUrl/books'); // Replace with your API endpoint
+  static Future<void> sendBookData(Map<String, dynamic> bookData) async {
+    final url = Uri.parse('$apiBaseUrl/books'); // Endpoint pour gérer les livres
 
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(bookData),
+        body: jsonEncode({
+          'industry_identifiers_identifier': bookData['industry_identifiers_identifier'],
+          'title': bookData['title'],
+          'subtitle': bookData['subtitle'],
+          'description': bookData['description'],
+          'page_count': bookData['page_count'],
+          'image_link_medium': bookData['image_link_medium'],
+          'image_link_thumbnail': bookData['image_link_thumbnail'],
+          'author_id': bookData['author_id'],
+        }),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Erreur: ${response.statusCode}');
+        throw Exception('Erreur: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       throw Exception('Erreur lors de l\'envoi des données : $e');
@@ -112,7 +121,7 @@ class ApiService {
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'isbn': bookData['isbn'],
+          'IndustryIdentifiersIdentifier': bookData['IndustryIdentifiersIdentifier'],
           'title': bookData['title'],
           'subtitle': bookData['subtitle'],
           'description': bookData['description'],
@@ -157,6 +166,39 @@ class ApiService {
       return response.statusCode == 201; // Retourne true si la création est réussie
     } catch (e) {
       throw Exception('Erreur lors de la création du compte : $e');
+    }
+  }
+
+  static Future<int?> getOrCreateAuthor({
+    required String name,
+    String? nickname,
+    required String birthday,
+  }) async {
+    final url = Uri.parse('$apiBaseUrl/authors'); // Endpoint pour gérer les auteurs
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'nickname': nickname ?? '',
+          'birthday': birthday,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        return data['id']; // Retourne l'ID de l'auteur
+      } else if (response.statusCode == 409) {
+        // Si l'auteur existe déjà, récupérer son ID
+        final data = jsonDecode(response.body);
+        return data['id'];
+      } else {
+        throw Exception('Erreur: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la gestion de l\'auteur : $e');
     }
   }
 }
