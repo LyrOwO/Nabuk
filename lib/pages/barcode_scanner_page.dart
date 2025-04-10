@@ -66,6 +66,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
         scannedBooks.clear(); // Clear the list after sending
       });
     } catch (e) {
+      print("Error while sending books: $e"); // Log the error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur lors de l'envoi des données : $e")),
       );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_services.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({Key? key}) : super(key: key);
@@ -11,6 +12,7 @@ class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -70,16 +72,14 @@ class _SignupPageState extends State<SignupPage> {
               SizedBox(height: 32),
               // Bouton d'Inscription
               ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _handleSignup();
-                  }
-                },
+                onPressed: _isLoading ? null : _handleSignup,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color.fromRGBO(211, 180, 156, 50),
                   padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                 ),
-                child: Text('S’inscrire'),
+                child: _isLoading
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text('S’inscrire'),
               ),
             ],
           ),
@@ -88,21 +88,37 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  void _handleSignup() {
+  void _handleSignup() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
-    // Exemple de gestion d'inscription (remplacez par une logique réelle)
-    if (username.isNotEmpty && password.isNotEmpty) {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final success = await ApiService.createAccount(username, password);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Compte créé avec succès !')),
+        );
+        Navigator.pushReplacementNamed(context, '/login');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur : Impossible de créer le compte.')),
+        );
+      }
+    } catch (e) {
+      print("Erreur : $e"); // Log de l'erreur
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Compte créé avec succès !')),
+        SnackBar(content: Text('Erreur : $e')),
       );
-      // Redirection vers la page de connexion ou d'accueil
-      Navigator.pushReplacementNamed(context, '/login');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la création du compte')),
-      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 }

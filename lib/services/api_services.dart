@@ -132,4 +132,31 @@ class ApiService {
       throw Exception('Erreur lors de l\'envoi des données : $e');
     }
   }
+
+  static Future<bool> createAccount(String username, String password) async {
+    final url = Uri.parse('$apiBaseUrl/signup'); // Vérifiez que cet endpoint est correct
+
+    try {
+      final payload = {
+        'username': username,
+        'password': password,
+      };
+
+      print("Payload envoyé : $payload"); // Log du payload
+      print("URL : $url"); // Log de l'URL
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      print("Statut de la réponse : ${response.statusCode}"); // Log du statut
+      print("Réponse : ${response.body}"); // Log du corps de la réponse
+
+      return response.statusCode == 201; // Retourne true si la création est réussie
+    } catch (e) {
+      throw Exception('Erreur lors de la création du compte : $e');
+    }
+  }
 }
