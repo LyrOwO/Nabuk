@@ -174,24 +174,31 @@ class ApiService {
     String? nickname,
     required String birthday,
   }) async {
-    final url = Uri.parse('$apiBaseUrl/authors'); // Endpoint pour gérer les auteurs
+    final url = Uri.parse('$apiBaseUrl/api/authors'); // Mettre à jour l'endpoint icii
 
     try {
+      final payload = {
+        'name': name,
+        'nickname': nickname ?? '',
+        'birthday': birthday,
+      };
+
+      print("URL : $url"); // Log de l'URL
+      print("Payload envoyé : $payload"); // Log du payload
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'name': name,
-          'nickname': nickname ?? '',
-          'birthday': birthday,
-        }),
+        body: jsonEncode(payload),
       );
+
+      print("Statut de la réponse : ${response.statusCode}"); // Log du statut
+      print("Réponse : ${response.body}"); // Log du corps de la réponse
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
         return data['id']; // Retourne l'ID de l'auteur
       } else if (response.statusCode == 409) {
-        // Si l'auteur existe déjà, récupérer son ID
         final data = jsonDecode(response.body);
         return data['id'];
       } else {
