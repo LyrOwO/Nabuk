@@ -65,9 +65,13 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
           nickname: book['author_nickname'],
           birthday: book['author_birthday'] ?? '1900-01-01', // Date par défaut si inconnue
         );
+
         if (authorId != null) {
           book['author_id'] = authorId; // Associer l'auteur au livre
+          print("Payload du livre avec auteur : $book"); // Log pour vérifier le payload complet
           await ApiService.sendBookData(book); // Envoyer les données du livre
+        } else {
+          throw Exception("Impossible de récupérer ou créer l'auteur.");
         }
       }
       ScaffoldMessenger.of(context).showSnackBar(

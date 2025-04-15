@@ -87,23 +87,31 @@ class ApiService {
   }
 
   static Future<void> sendBookData(Map<String, dynamic> bookData) async {
-    final url = Uri.parse('$apiBaseUrl/books'); // Endpoint pour gérer les livres
+    final url = Uri.parse('$apiBaseUrl/api/books'); // Mettre à jour l'endpoint icici
 
     try {
+      final payload = {
+        'industry_identifiers_identifier': bookData['industry_identifiers_identifier'],
+        'title': bookData['title'],
+        'subtitle': bookData['subtitle'],
+        'description': bookData['description'],
+        'page_count': bookData['page_count'],
+        'image_link_medium': bookData['image_link_medium'],
+        'image_link_thumbnail': bookData['image_link_thumbnail'],
+        'author_id': bookData['author_id'],
+      };
+
+      print("URL : $url"); // Log de l'URL
+      print("Payload envoyé : $payload"); // Log du payload
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'industry_identifiers_identifier': bookData['industry_identifiers_identifier'],
-          'title': bookData['title'],
-          'subtitle': bookData['subtitle'],
-          'description': bookData['description'],
-          'page_count': bookData['page_count'],
-          'image_link_medium': bookData['image_link_medium'],
-          'image_link_thumbnail': bookData['image_link_thumbnail'],
-          'author_id': bookData['author_id'],
-        }),
+        body: jsonEncode(payload),
       );
+
+      print("Statut de la réponse : ${response.statusCode}"); // Log du statut
+      print("Réponse : ${response.body}"); // Log du corps de la réponse
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception('Erreur: ${response.statusCode} - ${response.body}');
@@ -114,7 +122,7 @@ class ApiService {
   }
 
   static Future<void> sendBookAndAuthorData(Map<String, dynamic> bookData) async {
-    final url = Uri.parse('$apiBaseUrl/books'); // Replace with your API endpoint
+    final url = Uri.parse('$apiBaseUrl/api/books'); // Replace with your API endpoint
 
     try {
       final response = await http.post(
@@ -174,35 +182,72 @@ class ApiService {
     String? nickname,
     required String birthday,
   }) async {
-    final url = Uri.parse('$apiBaseUrl/api/authors'); // Mettre à jour l'endpoint icii
+    final url = Uri.parse('$apiBaseUrl/api/authors'); // Endpoint pour gérer les auteurs
 
     try {
+      // Vérifier si l'auteur existe déjà
+      final checkUrl = Uri.parse('$apiBaseUrl/api/authors?name=$name');
+      final checkResponse = await http.get(checkUrl, headers: {'Content-Type': 'application/json'});
+
+      print("Statut de la réponse (vérification auteur) : ${checkResponse.statusCode}");
+      print("Réponse brute (vérification auteur) : ${checkResponse.body}");
+
+      if (checkResponse.statusCode == 200) {
+        final data = jsonDecode(checkResponse.body);
+        final members = data['member']; // Accéder à la liste des auteurs
+
+        if (members != null && members.isNotEmpty) {
+          // Parcourir les auteurs pour trouver une correspondance exacte
+          for (var author in members) {
+            if (author['name'] == name &&
+                (author['nickname'] ?? '') == (nickname ?? '') &&
+                author['birthday'] == birthday) {
+              print("Auteur existant trouvé, ID : ${author['id']}"); // Log de l'ID de l'auteur existant
+              return author['id']; // Retourne l'ID de l'auteur correspondant
+            }
+          }
+        }
+      }
+
+      // Si aucun auteur correspondant n'est trouvé, tenter de le créer
       final payload = {
         'name': name,
         'nickname': nickname ?? '',
         'birthday': birthday,
       };
 
-      print("URL : $url"); // Log de l'URL
-      print("Payload envoyé : $payload"); // Log du payload
+      print("Payload pour création d'auteur : $payload"); // Log du payload
 
-      final response = await http.post(
+      final createResponse = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       );
 
-      print("Statut de la réponse : ${response.statusCode}"); // Log du statut
-      print("Réponse : ${response.body}"); // Log du corps de la réponse
+      print("Statut de la réponse (création auteur) : ${createResponse.statusCode}");
+      print("Réponse brute (création auteur) : ${createResponse.body}");
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        return data['id']; // Retourne l'ID de l'auteur
-      } else if (response.statusCode == 409) {
-        final data = jsonDecode(response.body);
-        return data['id'];
+      if (createResponse.statusCode == 201) {
+        final data = jsonDecode(createResponse.body);
+        print("Auteur créé avec succès, ID : ${data['id']}"); // Log de l'ID de l'auteur créé
+        return data['id']; // Retourne l'ID de l'auteur créé
+      } else if (createResponse.statusCode == 422) {
+        // Gestion de l'erreur 422 : L'auteur existe déjà
+        print("Erreur 422 : L'auteur existe déjà. Récupération de l'ID.");
+        final data = jsonDecode(checkResponse.body);
+        final members = data['member'];
+        if (members != null && members.isNotEmpty) {
+          for (var author in members) {
+            if (author['name'] == name &&
+                (author['nickname'] ?? '') == (nickname ?? '') &&
+                author['birthday'] == birthday) {
+              print("Auteur existant trouvé après erreur 422, ID : ${author['id']}");
+              return author['id']; // Retourne l'ID de l'auteur correspondant
+            }
+          }
+        }
       } else {
-        throw Exception('Erreur: ${response.statusCode} - ${response.body}');
+        throw Exception('Erreur lors de la création de l\'auteur : ${createResponse.body}');
       }
     } catch (e) {
       throw Exception('Erreur lors de la gestion de l\'auteur : $e');
