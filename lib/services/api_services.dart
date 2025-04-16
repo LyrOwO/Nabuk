@@ -125,25 +125,43 @@ class ApiService {
     final url = Uri.parse('$apiBaseUrl/api/books'); // Replace with your API endpoint
 
     try {
+      // Préparer le payload avec les données du livre et de l'auteur
+      final payload = {
+        'IndustryIdentifiersIdentifier': bookData['IndustryIdentifiersIdentifier'],
+        'title': bookData['title'],
+        'subtitle': bookData['subtitle'],
+        'description': bookData['description'],
+        'page_count': bookData['page_count'],
+        'image_link_medium': bookData['image_link_medium'],
+        'image_link_thumbnail': bookData['image_link_thumbnail'],
+        'author': {
+          'name': bookData['author_name'],
+          'nickname': bookData['author_nickname'],
+          'birthday': bookData['author_birthday'],
+        },
+      };
+
+      print("Payload envoyé : $payload"); // Log pour vérifier le payload
+
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'IndustryIdentifiersIdentifier': bookData['IndustryIdentifiersIdentifier'],
-          'title': bookData['title'],
-          'subtitle': bookData['subtitle'],
-          'description': bookData['description'],
-          'page_count': bookData['page_count'],
-          'image_link_medium': bookData['image_link_medium'],
-          'image_link_thumbnail': bookData['image_link_thumbnail'],
-          'author': {
-            'name': bookData['author'],
-          },
-        }),
+        body: jsonEncode(payload),
       );
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Erreur: ${response.statusCode}');
+      print("Statut de la réponse : ${response.statusCode}"); // Log du statut
+      print("Réponse : ${response.body}"); // Log du corps de la réponse
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        // Si la requête réussit, vérifier si un nouvel ID d'auteur est retourné
+        final responseData = jsonDecode(response.body);
+        if (responseData.containsKey('author_id')) {
+          print("Nouvel ID de l'auteur : ${responseData['author_id']}");
+        } else {
+          print("Aucun nouvel ID d'auteur retourné.");
+        }
+      } else {
+        throw Exception('Erreur: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       throw Exception('Erreur lors de l\'envoi des données : $e');
@@ -217,7 +235,7 @@ class ApiService {
       };
 
       print("Payload pour création d'auteur : $payload"); // Log du payload
-
+      print(url);
       final createResponse = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -246,11 +264,58 @@ class ApiService {
             }
           }
         }
+        // Si aucun auteur correspondant n'est trouvé, lever une exception claire
+        throw Exception("Impossible de récupérer l'ID de l'auteur après une erreur 422.");
       } else {
         throw Exception('Erreur lors de la création de l\'auteur : ${createResponse.body}');
       }
     } catch (e) {
       throw Exception('Erreur lors de la gestion de l\'auteur : $e');
+    }
+  }
+
+  static Future<void> sendBookWithAuthor(Map<String, dynamic> bookData) async {
+    try {
+      // Étape 1 : Vérifier ou créer l'auteur
+      final authorId = await getOrCreateAuthor(
+        name: bookData['author_name'],
+        nickname: bookData['author_nickname'],
+        birthday: bookData['author_birthday'] ?? '1900-01-01', // Date par défaut si inconnue
+      );
+
+      if (authorId == null) {
+        throw Exception("Impossible de récupérer ou créer l'auteur.");
+      }
+
+      // Étape 2 : Envoyer le livre avec l'ID de l'auteur
+      final payload = {
+        'industry_identifiers_identifier': bookData['industry_identifiers_identifier'],
+        'title': bookData['title'],
+        'subtitle': bookData['subtitle'],
+        'description': bookData['description'],
+        'page_count': bookData['page_count'],
+        'image_link_medium': bookData['image_link_medium'],
+        'image_link_thumbnail': bookData['image_link_thumbnail'],
+        'author_id': authorId, // Associer l'auteur au livre
+      };
+
+      print("Payload du livre avec auteur : $payload"); // Log pour vérifier le payload
+
+      final url = Uri.parse('$apiBaseUrl/api/books');
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+
+      print("Statut de la réponse : ${response.statusCode}");
+      print("Réponse : ${response.body}");
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Erreur lors de l\'envoi du livre : ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de l\'envoi du livre avec auteur : $e');
     }
   }
 }

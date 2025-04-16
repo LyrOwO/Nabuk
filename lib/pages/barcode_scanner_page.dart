@@ -59,20 +59,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   Future<void> sendBooksToApi() async {
     try {
       for (var book in scannedBooks) {
-        // Vérifier ou ajouter l'auteur
-        final authorId = await ApiService.getOrCreateAuthor(
-          name: book['author_name'],
-          nickname: book['author_nickname'],
-          birthday: book['author_birthday'] ?? '1900-01-01', // Date par défaut si inconnue
-        );
-
-        if (authorId != null) {
-          book['author_id'] = authorId; // Associer l'auteur au livre
-          print("Payload du livre avec auteur : $book"); // Log pour vérifier le payload complet
-          await ApiService.sendBookData(book); // Envoyer les données du livre
-        } else {
-          throw Exception("Impossible de récupérer ou créer l'auteur.");
-        }
+        await ApiService.sendBookWithAuthor(book); // Utiliser la nouvelle méthode
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("${scannedBooks.length} livres envoyés à l'API !")),
@@ -187,7 +174,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(211, 180, 156, 50),
                   ),
-                  child: Text("Terminer et Envoyer à l'API"),
+                  child: Text("Enregistrer mes livres"),
                 ),
               ],
             ),
