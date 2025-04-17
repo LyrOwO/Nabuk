@@ -59,7 +59,7 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
   Future<void> sendBooksToApi() async {
     try {
       for (var book in scannedBooks) {
-        await ApiService.sendBookWithAuthor(book); // Utiliser la nouvelle méthode
+        await ApiService.sendBookWithAuthor(book); // Utiliser la méthode mise à jour
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("${scannedBooks.length} livres envoyés à l'API !")),
