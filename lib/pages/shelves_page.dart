@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
+import '../services/api_services.dart';
+import 'shelf_books_page.dart';
 import '../widgets/footer_navigation.dart';
 
-class ShelvesPage extends StatelessWidget {
+class ShelvesPage extends StatefulWidget {
+  @override
+  _ShelvesPageState createState() => _ShelvesPageState();
+}
+
+class _ShelvesPageState extends State<ShelvesPage> {
+  late Future<List<Map<String, dynamic>>> _shelvesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _shelvesFuture = ApiService.fetchShelves(); // Récupérer les étagères
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -11,7 +26,7 @@ class ShelvesPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Color.fromRGBO(211, 180, 156, 50), // Utilisation de la nouvelle couleur
+              color: Color.fromRGBO(211, 180, 156, 50),
               borderRadius: BorderRadius.vertical(
                 bottom: Radius.circular(20),
               ),
@@ -32,55 +47,52 @@ class ShelvesPage extends StatelessWidget {
             ),
           ),
 
-          // Faux contenu : Liste des étagères
+          // Liste des étagères
           Expanded(
-            child: Container(
-              color: Colors.grey[200],
-              padding: const EdgeInsets.all(16.0),
-              child: ListView(
-                children: [
-                  _shelfCard('Romans'),
-                  _shelfCard('Science-fiction'),
-                  _shelfCard('Biographies'),
-                  _shelfCard('À lire plus tard'),
-                ],
-              ),
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _shelvesFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Erreur : ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text('Aucune étagère trouvée.'));
+                }
+
+                final shelves = snapshot.data!;
+                return ListView.builder(
+                  itemCount: shelves.length,
+                  itemBuilder: (context, index) {
+                    final shelf = shelves[index];
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      child: ListTile(
+                        leading: Icon(Icons.folder, color: Color.fromRGBO(211, 180, 156, 50)),
+                        title: Text(shelf['name'] ?? 'Nom inconnu'),
+                        subtitle: Text('Créé le : ${shelf['date_creation'] ?? 'Inconnu'}'), // Supprimé le nom de l'auteur
+                        trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ShelfBooksPage(shelfId: shelf['id'].toString()), // Convertir en String
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
       ),
 
-      // Bouton flottant correctement positionné
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 60.0), // Ajustement pour éviter de recouvrir le footer
-        child: FloatingActionButton(
-          onPressed: () {
-            // Placeholder : Pour ajouter une nouvelle étagère dans le futur
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Fonction d’ajout à venir !')),
-            );
-          },
-          backgroundColor: Color.fromRGBO(211, 180, 156, 50), // Nouvelle couleur
-          child: Icon(Icons.add, color: Colors.white),
-        ),
-      ),
-
       // Footer
       bottomNavigationBar: FooterNavigation(currentIndex: 2),
-    );
-  }
-
-  Widget _shelfCard(String shelfName) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        leading: Icon(Icons.folder, color: Color.fromRGBO(211, 180, 156, 50)),
-        title: Text(shelfName),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {
-          // Placeholder : Pour visualiser les livres de cette étagère dans le futur
-        },
-      ),
     );
   }
 }

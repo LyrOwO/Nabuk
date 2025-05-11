@@ -16,64 +16,68 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.fromRGBO(211, 180, 156, 50),
-        title: Text('Connexion'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Connectez-vous',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 32),
-              // Champ Email
-              TextFormField(
-                controller: _usernameController,
-                decoration: InputDecoration(
-                  labelText: "Nom d'utilisateur",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.login),
+    return WillPopScope(
+      onWillPop: () async => false, // Empêche de quitter la page
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Color.fromRGBO(211, 180, 156, 50),
+          title: Text('Connexion'),
+          automaticallyImplyLeading: false, // Supprime le bouton "back" dans l'AppBar
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Connectez-vous',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-              ),
-              SizedBox(height: 16),
-              // Champ Mot de Passe
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Mot de passe',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
+                SizedBox(height: 32),
+                // Champ Email
+                TextFormField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    labelText: "Nom d'utilisateur",
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.login),
+                  ),
                 ),
-                obscureText: true,
-              ),
-              SizedBox(height: 32),
-              // Bouton de Connexion
-              ElevatedButton(
-                onPressed: _isLoading ? null : _handleLogin,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromRGBO(211, 180, 156, 50),
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                SizedBox(height: 16),
+                // Champ Mot de Passe
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: InputDecoration(
+                    labelText: 'Mot de passe',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock),
+                  ),
+                  obscureText: true,
                 ),
-                child: _isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : const Text('Se connecter'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/signup');
-                },
-                child: Text(
-                  "Pas de compte ? Inscrivez-vous",
-                  style: TextStyle(color: Color.fromRGBO(211, 180, 156, 50)),
+                SizedBox(height: 32),
+                // Bouton de Connexion
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromRGBO(211, 180, 156, 50),
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  ),
+                  child: _isLoading
+                      ? CircularProgressIndicator(color: Colors.white)
+                      : const Text('Se connecter'),
                 ),
-              ),
-            ],
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/signup');
+                  },
+                  child: Text(
+                    "Pas de compte ? Inscrivez-vous",
+                    style: TextStyle(color: Color.fromRGBO(211, 180, 156, 50)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

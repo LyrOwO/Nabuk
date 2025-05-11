@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'token_service.dart'; // Import the TokenService
 
 class ApiService {
   static const String apiBaseUrl = 'https://std25.beaupeyrat.com';
@@ -317,29 +318,223 @@ class ApiService {
   }
 
   static Future<List<Map<String, String>>> fetchBooks() async {
-    final url = Uri.parse('$apiBaseUrl/api/books');
+  final url = Uri.parse('$apiBaseUrl/api/books');
+
+  try {
+    final token = await TokenService.getToken(); // Retrieve the token
+    if (token == null) {
+      throw Exception('JWT Token not found');
+    }
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // Include the token in the headers
+      },
+    );
+
+    print("Réponse brute de l'API : ${response.body}"); // Log de la réponse brute
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      // Utilisez la clé correcte 'member' au lieu de 'hydra:member'
+      if (data['member'] == null || data['member'] is! List) {
+        print("Aucun livre trouvé."); // Log si aucun livre n'est trouvé
+        return [];
+      }
+
+      final books = data['member'] as List;
+
+      return books.map((book) {
+        return {
+          'title': (book['title'] ?? 'Titre non disponible').toString(),
+          'author': (book['author'] ?? 'Auteur inconnu').toString(),
+          'description': (book['description'] ?? 'Description non disponible').toString(),
+          'image_link_thumbnail': (book['displayImage'] ?? '').toString(),
+        };
+      }).toList();
+    } else {
+      throw Exception('Erreur lors de la récupération des livres : ${response.body}');
+    }
+  } catch (e) {
+    throw Exception('Erreur lors de la récupération des livres : $e');
+  }
+}
+
+  static Future<List<Map<String, dynamic>>> fetchLoans() async {
+  final url = Uri.parse('$apiBaseUrl/api/prets'); // Correct endpoint for loans
+
+  try {
+    final token = await TokenService.getToken(); // Retrieve the token
+    if (token == null) {
+      throw Exception('JWT Token not found');
+    }
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token', // Include the token in the headers
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['member'] == null || data['member'] is! List) {
+        return [];
+      }
+
+      // Map API fields to application fields
+      return List<Map<String, dynamic>>.from(data['member'].map((loan) => {
+            'name_pret': loan['name_pret'],
+            'date_debut_pret': loan['date_debut_pret'],
+            'date_fin_pret': loan['date_fin_pret'],
+          }));
+    } else {
+      throw Exception('Erreur lors de la récupération des prêts : ${response.body}');
+    }
+  } catch (e) {
+    throw Exception('Erreur lors de la récupération des prêts : $e');
+  }
+}
+
+  static Future<List<Map<String, dynamic>>> fetchShelves() async {
+    final url = Uri.parse('$apiBaseUrl/api/shelves');
 
     try {
+      final token = await TokenService.getToken();
+      if (token == null) {
+        throw Exception('JWT Token not found');
+      }
+
       final response = await http.get(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final books = data['hydra:member'] as List;
+        if (data['member'] == null || data['member'] is! List) {
+          return [];
+        }
 
-        return books.map((book) {
-          return {
-            'title': (book['title'] ?? 'Titre non disponible').toString(),
-            'author': (book['author']['name'] ?? 'Auteur inconnu').toString(),
-          };
-        }).toList();
+        return List<Map<String, dynamic>>.from(data['member']);
+      } else {
+        throw Exception('Erreur lors de la récupération des étagères : ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des étagères : $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchBooksByShelf(String shelfId) async {
+    final url = Uri.parse('$apiBaseUrl/api/shelves/$shelfId'); // Inclure l'ID de l'étagère
+
+    try {
+      final token = await TokenService.getToken();
+      if (token == null) {
+        throw Exception('JWT Token not found');
+      }
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // Vérifier si la clé 'books' existe et est une liste
+        if (data['books'] == null || data['books'] is! List) {
+          return [];
+        }
+
+        // Si 'books' contient des URI ou des ID, effectuer des requêtes supplémentaires pour récupérer les détails
+        final List<dynamic> bookUris = data['books'];
+        List<Map<String, dynamic>> books = [];
+
+        for (var bookUri in bookUris) {
+          if (bookUri is String) {
+            final bookResponse = await http.get(
+              Uri.parse('$apiBaseUrl$bookUri'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $token',
+              },
+            );
+
+            if (bookResponse.statusCode == 200) {
+              books.add(jsonDecode(bookResponse.body));
+            } else {
+              print('Erreur lors de la récupération du livre : ${bookResponse.body}');
+            }
+          }
+        }
+
+        return books;
       } else {
         throw Exception('Erreur lors de la récupération des livres : ${response.body}');
       }
     } catch (e) {
       throw Exception('Erreur lors de la récupération des livres : $e');
     }
+  }
+
+  static Future<Map<String, dynamic>?> fetchAuthorDetails(String authorUri) async {
+    final url = Uri.parse('$apiBaseUrl$authorUri'); // Construire l'URL complète
+
+    try {
+      final token = await TokenService.getToken();
+      if (token == null) {
+        throw Exception('JWT Token not found');
+      }
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body); // Retourner les détails de l'auteur
+      } else {
+        throw Exception('Erreur lors de la récupération des détails de l\'auteur : ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des détails de l\'auteur : $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchBooksWithAuthorNames(List<Map<String, dynamic>> books) async {
+    final token = await TokenService.getToken();
+    if (token == null) {
+      throw Exception('JWT Token not found');
+    }
+
+    for (var book in books) {
+      if (book['author'] is String) {
+        final authorUri = book['author'];
+        try {
+          final authorDetails = await fetchAuthorDetails(authorUri);
+          book['author_name'] = authorDetails?['name'] ?? 'Auteur inconnu';
+        } catch (e) {
+          book['author_name'] = 'Auteur inconnu'; // Valeur par défaut en cas d'erreur
+        }
+      } else {
+        book['author_name'] = 'Auteur inconnu';
+      }
+    }
+
+    return books;
   }
 }

@@ -8,7 +8,7 @@ class BooksPage extends StatefulWidget {
 }
 
 class _BooksPageState extends State<BooksPage> {
-  List<Map<String, String>> books = [];
+  List<Map<String, dynamic>> books = []; // Changer le type en Map<String, dynamic>
   bool isLoading = true;
 
   @override
@@ -20,18 +20,23 @@ class _BooksPageState extends State<BooksPage> {
   Future<void> _fetchBooks() async {
     try {
       final fetchedBooks = await ApiService.fetchBooks();
-      setState(() {
-        books = fetchedBooks;
-        isLoading = false;
-      });
+      final booksWithAuthors = await ApiService.fetchBooksWithAuthorNames(fetchedBooks); // Récupérer les noms des auteurs
+      if (mounted) { // Vérifier si le widget est toujours monté
+        setState(() {
+          books = booksWithAuthors.take(10).toList(); // Limite à 10 livres
+          isLoading = false;
+        });
+      }
     } catch (e) {
       print("Erreur : $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la récupération des livres : $e')),
-      );
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) { // Vérifier si le widget est toujours monté
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors de la récupération des livres : $e')),
+        );
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -51,7 +56,14 @@ class _BooksPageState extends State<BooksPage> {
                   itemCount: books.length,
                   itemBuilder: (context, index) {
                     final book = books[index];
-                    return BookCard(book['title']!, book['author']!);
+                    final authorName = book['author_name'] ?? 'Auteur inconnu';
+
+                    return BookCard(
+                      title: book['title'] ?? 'Titre non disponible',
+                      author: authorName, // Affiche le nom de l'auteur
+                      imageUrl: book['image_link_thumbnail'], // Ajoutez l'URL de l'image
+                      description: book['description'] ?? 'Description non disponible', // Ajoutez la description
+                    );
                   },
                 ),
     );

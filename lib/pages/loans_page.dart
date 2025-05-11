@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../form/add_loan_form.dart'; // Importez la page du formulaire si elle est dans un fichier séparé
+import '../services/api_services.dart';
+import '../widgets/footer_navigation.dart';
 
 class LoansPage extends StatefulWidget {
   @override
@@ -7,29 +8,31 @@ class LoansPage extends StatefulWidget {
 }
 
 class _LoansPageState extends State<LoansPage> {
-  // Données simulées pour les prêts
-  List<Map<String, dynamic>> loans = [
-    {
-      'book': 'Le Petit Prince',
-      'borrower': 'Alice',
-      'dueDate': DateTime(2024, 11, 30),
-    },
-  ];
+  List<Map<String, dynamic>> loans = []; // List to store loans
+  bool isLoading = true;
 
-  // Fonction pour ouvrir le formulaire d'ajout
-  void _openAddLoanForm() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddLoanForm(
-          onAddLoan: (newLoan) {
-            setState(() {
-              loans.add(newLoan);
-            });
-          },
-        ),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _fetchLoans(); // Fetch loans when the page loads
+  }
+
+  Future<void> _fetchLoans() async {
+    try {
+      final fetchedLoans = await ApiService.fetchLoans(); // Fetch loans from the API
+      setState(() {
+        loans = fetchedLoans;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Erreur lors de la récupération des prêts : $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la récupération des prêts : $e')),
+      );
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -39,45 +42,41 @@ class _LoansPageState extends State<LoansPage> {
         backgroundColor: Color.fromRGBO(211, 180, 156, 50),
         title: Text('Gestion des Prêts'),
       ),
-      body: loans.isEmpty
-    ? Center(child: Text('Aucun prêt enregistré.'))
-    : ListView.builder(
-        itemCount: loans.length,
-        itemBuilder: (context, index) {
-          final loan = loans[index];
-          return Card(
-            child: ListTile(
-              title: Text(
-                loan['book'],
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Emprunté par : ${loan['borrower']}'),
-                  Text(
-                    'Retour prévu : ${loan['dueDate'].toLocal()}'.split(' ')[0],
-                  ),
-                ],
-              ),
-              trailing: IconButton(
-                icon: Icon(Icons.delete, color: Colors.red),
-                onPressed: () {
-                  setState(() {
-                    loans.removeAt(index);
-                  });
-                },
-              ),
-            ),
-          );
-        },
-      ),
-
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Color.fromRGBO(211, 180, 156, 50),
-        onPressed: _openAddLoanForm,
-        child: Icon(Icons.add),
-      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : loans.isEmpty
+              ? Center(child: Text('Aucun prêt enregistré.'))
+              : ListView.builder(
+                  itemCount: loans.length,
+                  itemBuilder: (context, index) {
+                    final loan = loans[index];
+                    return Card(
+                      child: ListTile(
+                        title: Text(
+                          loan['name_pret'], // Display the loan name
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Date de début : ${loan['date_debut_pret'].split('T')[0]}'),
+                            Text('Date de fin : ${loan['date_fin_pret'].split('T')[0]}'),
+                          ],
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            // Placeholder for delete functionality
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Suppression à venir.')),
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+      bottomNavigationBar: FooterNavigation(currentIndex: 3), // Activer l'icône des prêts
     );
   }
 }

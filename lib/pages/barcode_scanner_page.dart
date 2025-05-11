@@ -139,6 +139,12 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Scanner de Codes-Barres"),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/home'); // Retour à la page d'accueil
+          },
+        ),
       ),
       body: Column(
         children: [

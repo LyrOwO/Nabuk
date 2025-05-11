@@ -7,88 +7,41 @@ class FooterNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey[300]!, width: 1),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          // Icône Accueil
-          IconButton(
-            icon: Icon(
-              Icons.home,
-              color: currentIndex == 0 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
-            ),
-            onPressed: () {
-              if (currentIndex != 0) Navigator.pushNamed(context, '/');
-            },
-          ),
-          // Icône Livres
-          IconButton(
-            icon: Icon(
-              Icons.book,
-              color: currentIndex == 1 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
-            ),
-            onPressed: () {
-              if (currentIndex != 1) Navigator.pushNamed(context, '/books');
-            },
-          ),
-          // Icône Étagères
-          IconButton(
-            icon: Icon(
-              Icons.storage,
-              color: currentIndex == 2 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
-            ),
-            onPressed: () {
-              if (currentIndex != 2) Navigator.pushNamed(context, '/shelves');
-            },
-          ),
-          // Icône Prêts
-          IconButton(
-            icon: Icon(
-              Icons.library_books,
-              color: currentIndex == 3 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
-            ),
-            onPressed: () {
-              if (currentIndex != 3) Navigator.pushNamed(context, '/loans');
-            },
-          ),
-          // Nouvelle icône pour Favoris
-          IconButton(
-            icon: Icon(
-              Icons.favorite,
-              color: currentIndex == 4 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
-            ),
-            onPressed: () {
-              if (currentIndex != 4) Navigator.pushNamed(context, '/favorites');
-            },
-          ),
-          // Icône Profil (dernier)
-          IconButton(
-            icon: Icon(
-              Icons.person,
-              color: currentIndex == 5 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
-            ),
-            onPressed: () {
-              if (currentIndex != 5) Navigator.pushNamed(context, '/profile');
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.qr_code_scanner,
-              color: currentIndex == 6 ? Color.fromRGBO(211, 180, 156, 50) : Colors.grey,
-            ),
-            onPressed: () {
-              if (currentIndex != 6) Navigator.pushNamed(context, '/barcode_scanner');
-            },
-          ),
-        ],
-      ),
+    return BottomNavigationBar(
+      currentIndex: currentIndex,
+      onTap: (index) {
+        switch (index) {
+          case 0:
+            Navigator.pushNamed(context, '/'); // Utiliser '/' pour la page d'accueil
+            break;
+          case 1:
+            Navigator.pushNamed(context, '/books');
+            break;
+          case 2:
+            Navigator.pushNamed(context, '/shelves');
+            break;
+          case 3:
+            Navigator.pushNamed(context, '/loans');
+            break;
+          case 4:
+            Navigator.pushNamed(context, '/barcode_scanner');
+            break;
+          case 5:
+            Navigator.pushNamed(context, '/profile');
+            break;
+        }
+      },
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Color.fromRGBO(211, 180, 156, 50), // Couleur personnalisée pour l'élément sélectionné
+      unselectedItemColor: Colors.grey,
+      items: [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
+        BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Livres'),
+        BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Étagères'),
+        BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Prêts'),
+        BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'Scan'), // Ajouté
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'), // Ajouté
+      ],
     );
   }
 }

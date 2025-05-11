@@ -10,6 +10,11 @@ import 'pages/loans_page.dart';
 import 'pages/barcode_scanner_page.dart';
 
 void main() {
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    print("Flutter Error: ${details.exceptionAsString()}");
+  };
+
   runApp(MyApp());
 }
 
@@ -29,7 +34,7 @@ class MyApp extends StatelessWidget {
         '/books': (context) => BooksPage(),
         '/shelves': (context) => ShelvesPage(),
         '/favorites': (context) => FavoritesPage(),
-        '/profile': (context) => ProfilePage(),
+        '/profile': (context) => ProfilePage(username: 'Utilisateur'), // Passer un username par défaut ou dynamique
         '/loans': (context) => LoansPage(),
         '/signup': (context) => SignupPage(),
         '/barcode_scanner': (context) => BarcodeScannerPage(),
