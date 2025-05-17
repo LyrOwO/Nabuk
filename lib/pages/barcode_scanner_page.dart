@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
 import '../services/api_services.dart';
+import '../services/token_service.dart';
 
 class BarcodeScannerPage extends StatefulWidget {
   const BarcodeScannerPage({Key? key}) : super(key: key);
@@ -10,182 +11,150 @@ class BarcodeScannerPage extends StatefulWidget {
 }
 
 class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
-  List<Map<String, dynamic>> scannedBooks = []; // List to store scanned books
+  Map<String, dynamic>? scannedBook;
+  bool isLoading = false;
+  String? error;
 
-  @override
-  void initState() {
-    super.initState();
-    scanBarcode(); // Automatically start scanning when the page is loaded
-  }
-
-  Future<void> scanBarcode() async {
+  Future<void> scanAndFetchBook() async {
+    setState(() {
+      isLoading = true;
+      error = null;
+      scannedBook = null;
+    });
     try {
       var result = await BarcodeScanner.scan();
-      String scannedCode = result.rawContent.isEmpty ? "Aucun code scanné" : result.rawContent;
-
-      if (scannedCode.isNotEmpty) {
-        // Fetch book details from Google Books API
-        final bookInfo = await ApiService.getBookInfo(scannedCode);
-        if (bookInfo != null) {
-          setState(() {
-            scannedBooks.add({
-              'industry_identifiers_identifier': scannedCode,
-              'title': bookInfo['title'] ?? 'Titre non disponible',
-              'subtitle': bookInfo['subtitle'] ?? '',
-              'description': bookInfo['description'] ?? '',
-              'page_count': bookInfo['pageCount'] ?? 0,
-              'image_link_medium': bookInfo['imageLinks']?['medium'] ?? '',
-              'image_link_thumbnail': bookInfo['imageLinks']?['thumbnail'] ?? '',
-              'author_name': bookInfo['authors'] != null ? bookInfo['authors'][0] : 'Auteur inconnu',
-              'author_nickname': '', // Champ optionnel, vide par défaut
-              'author_birthday': null, // Date par défaut si inconnue
-            });
-          });
-          _showBookDialog(
-            title: bookInfo['title'] ?? 'Titre non disponible',
-            imageURL: bookInfo['imageLinks']?['thumbnail'] ?? '',
-          );
-        } else {
-          _showErrorDialog("Livre non trouvé pour le code-barres scanné.");
-        }
-      } else {
-        _showErrorDialog("Aucun code scanné.");
+      String scannedCode = result.rawContent;
+      if (scannedCode.isEmpty) {
+        setState(() {
+          error = "Aucun code scanné.";
+          isLoading = false;
+        });
+        return;
       }
-    } catch (e) {
-      _showErrorDialog("Erreur lors de la récupération des données : $e");
-    }
-  }
 
-  Future<void> sendBooksToApi() async {
-    try {
-      for (var book in scannedBooks) {
-        await ApiService.sendBookWithAuthor(book); // Utiliser la méthode mise à jour
+      final bookInfo = await ApiService.getBookInfo(scannedCode);
+      if (bookInfo == null) {
+        setState(() {
+          error = "Livre non trouvé pour le code-barres scanné.";
+          isLoading = false;
+        });
+        return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("${scannedBooks.length} livres envoyés à l'API !")),
-      );
+
+      final userId = await TokenService.getUserId();
+      if (userId == null) {
+        setState(() {
+          error = "Impossible de récupérer l'identifiant utilisateur. Veuillez vous reconnecter.";
+          isLoading = false;
+        });
+        return;
+      }
+
       setState(() {
-        scannedBooks.clear(); // Clear the list after sending
+        scannedBook = {
+          'industry_identifiers_identifier': scannedCode,
+          'title': bookInfo['title'] ?? 'Titre non disponible',
+          'subtitle': bookInfo['subtitle'] ?? '',
+          'description': bookInfo['description'] ?? '',
+          'page_count': bookInfo['pageCount'] ?? 0,
+          'image_link_medium': bookInfo['imageLinks']?['medium'] ?? '',
+          'image_link_thumbnail': bookInfo['imageLinks']?['thumbnail'] ?? '',
+          'author_name': bookInfo['authors'] != null ? bookInfo['authors'][0] : 'Auteur inconnu',
+          'author_nickname': '',
+          'author_birthday': null,
+          'added_by_id': userId, // Toujours non null ici
+        };
+        isLoading = false;
       });
     } catch (e) {
-      print("Error while sending books: $e"); // Log the error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur lors de l'envoi des données : $e")),
-      );
+      setState(() {
+        error = "Erreur lors du scan ou de la récupération des données : $e";
+        isLoading = false;
+      });
     }
   }
 
-  void _showBookDialog({
-    required String title,
-    required String imageURL,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (imageURL.isNotEmpty)
-                Image.network(imageURL, height: 150),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text("OK"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                scanBarcode(); // Continue scanning after closing the dialog
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromRGBO(211, 180, 156, 50),
-              ),
-              child: Text("Scanner un autre"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showErrorDialog(String errorMessage) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Erreur"),
-          content: Text(errorMessage),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
-    );
+  Future<void> sendBookToApi() async {
+    if (scannedBook == null) return;
+    setState(() {
+      isLoading = true;
+      error = null;
+    });
+    try {
+      await ApiService.sendBookWithAuthor(scannedBook!);
+      setState(() {
+        scannedBook = null;
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Livre envoyé à l'API !")),
+      );
+    } catch (e) {
+      setState(() {
+        error = "Erreur lors de l'envoi du livre : $e";
+        isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Scanner de Codes-Barres"),
+        title: Text("Scanner un livre"),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushReplacementNamed(context, '/home'); // Retour à la page d'accueil
+            Navigator.pushReplacementNamed(context, '/');
           },
         ),
+        backgroundColor: Color.fromRGBO(211, 180, 156, 50),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: scannedBooks.length,
-              itemBuilder: (context, index) {
-                final book = scannedBooks[index];
-                return ListTile(
-                  leading: book['image_link_thumbnail']!.isNotEmpty
-                      ? Image.network(book['image_link_thumbnail']!, width: 50, height: 50, fit: BoxFit.cover)
-                      : Icon(Icons.book, size: 50),
-                  title: Text(book['title']!),
-                  subtitle: Text(book['author_name']!),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                ElevatedButton(
-                  onPressed: scanBarcode, // Allow the user to manually start scanning again
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(211, 180, 156, 50),
-                  ),
-                  child: Text("Continuer le Scan"),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Text(error!, style: TextStyle(color: Colors.red)),
+                      ),
+                    if (scannedBook == null)
+                      ElevatedButton(
+                        onPressed: scanAndFetchBook,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromRGBO(211, 180, 156, 50),
+                        ),
+                        child: Text("Scanner un livre"),
+                      ),
+                    if (scannedBook != null) ...[
+                      if (scannedBook!['image_link_thumbnail'] != null && scannedBook!['image_link_thumbnail'] != '')
+                        Image.network(scannedBook!['image_link_thumbnail'], height: 120),
+                      SizedBox(height: 10),
+                      Text(scannedBook!['title'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(scannedBook!['author_name'] ?? ''),
+                      SizedBox(height: 10),
+                      Text(scannedBook!['description'] ?? '', maxLines: 3, overflow: TextOverflow.ellipsis),
+                      SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: sendBookToApi,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromRGBO(211, 180, 156, 50),
+                        ),
+                        child: Text("Enregistrer ce livre"),
+                      ),
+                      TextButton(
+                        onPressed: scanAndFetchBook,
+                        child: Text("Scanner un autre livre"),
+                      ),
+                    ],
+                  ],
                 ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: sendBooksToApi, // Send all scanned books to the API
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(211, 180, 156, 50),
-                  ),
-                  child: Text("Enregistrer mes livres"),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
       ),
     );
   }

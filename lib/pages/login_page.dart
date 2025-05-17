@@ -100,9 +100,16 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final token = await ApiService.fetchToken(username, password);
-      if (token != null) {
+      final response = await ApiService.login(username, password);
+      print('Réponse brute de l\'API après login : $response'); // Ajout pour debug
+      if (response['statusCode'] == 200) {
+        final data = response['data'];
+        final token = data['token'];
+        final userId = data['user']['id'].toString(); // adapte selon ta structure
+
         await TokenService.saveToken(token);
+        await TokenService.saveUserId(userId); // Sauvegarde l'ID utilisateur
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Connexion réussie !')),
         );
