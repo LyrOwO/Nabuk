@@ -12,7 +12,7 @@ class FooterNavigation extends StatelessWidget {
       onTap: (index) {
         switch (index) {
           case 0:
-            Navigator.pushNamed(context, '/'); // Utiliser '/' pour la page d'accueil
+            Navigator.pushNamed(context, '/');
             break;
           case 1:
             Navigator.pushNamed(context, '/books');
@@ -32,15 +32,15 @@ class FooterNavigation extends StatelessWidget {
         }
       },
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: Color.fromRGBO(211, 180, 156, 50), // Couleur personnalisée pour l'élément sélectionné
+      selectedItemColor: Color.fromRGBO(211, 180, 156, 50),
       unselectedItemColor: Colors.grey,
       items: [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
         BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Livres'),
         BottomNavigationBarItem(icon: Icon(Icons.folder), label: 'Étagères'),
         BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Prêts'),
-        BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'Scan'), // Ajouté
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'), // Ajouté
+        BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'Scan'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
       ],
     );
   }
