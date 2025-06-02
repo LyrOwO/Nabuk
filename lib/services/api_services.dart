@@ -341,7 +341,7 @@ class ApiService {
     }
   }
 
-  static Future<List<Map<String, String>>> fetchBooks() async {
+  static Future<List<Map<String, dynamic>>> fetchBooks() async {
     final url = Uri.parse('$apiBaseUrl/api/books');
     try {
       final token = await TokenService.getToken();
@@ -363,12 +363,20 @@ class ApiService {
           return [];
         }
         final books = data['member'] as List;
-        return books.map((book) {
+        return books.map<Map<String, dynamic>>((book) {
           return {
             'title': (book['title'] ?? 'Titre non disponible').toString(),
             'author': (book['author'] ?? 'Auteur inconnu').toString(),
             'description': (book['description'] ?? 'Description non disponible').toString(),
-            'image_link_thumbnail': (book['displayImage'] ?? '').toString(),
+            'image_link_thumbnail': (book['image_link_thumbnail'] ?? '').toString(),
+            'author_name': book['author_name'],
+            // Correction ici : récupère bien le champ depuis l'API
+            'added_by_id': book['addedBy'] != null
+                ? (book['addedBy'] is String
+                    ? book['addedBy'].split('/').last
+                    : book['addedBy'].toString())
+                : (book['added_by_id']?.toString() ?? ''),
+            // ...autres champs si besoin...
           };
         }).toList();
       } else {

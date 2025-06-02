@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_services.dart';
 import '../widgets/book_card.dart';
+import '../services/token_service.dart'; // Ajoute cette ligne pour importer TokenService
 
 class BooksPage extends StatefulWidget {
   @override
@@ -20,16 +21,25 @@ class _BooksPageState extends State<BooksPage> {
   Future<void> _fetchBooks() async {
     try {
       final fetchedBooks = await ApiService.fetchBooks();
-      final booksWithAuthors = await ApiService.fetchBooksWithAuthorNames(fetchedBooks); // Récupérer les noms des auteurs
-      if (mounted) { // Vérifier si le widget est toujours monté
+      final booksWithAuthors = await ApiService.fetchBooksWithAuthorNames(fetchedBooks);
+
+      final userId = await TokenService.getUserId();
+
+      final userBooks = booksWithAuthors.where((book) {
+        final bookUserId = book['added_by_id']?.toString().trim();
+        final currentUserId = userId?.toString().trim();
+        return bookUserId != null && bookUserId.isNotEmpty && bookUserId == currentUserId;
+      }).toList();
+
+      if (mounted) {
         setState(() {
-          books = booksWithAuthors.take(10).toList(); // Limite à 10 livres
+          books = userBooks.take(10).toList();
           isLoading = false;
         });
       }
     } catch (e) {
       print("Erreur : $e");
-      if (mounted) { // Vérifier si le widget est toujours monté
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur lors de la récupération des livres : $e')),
         );

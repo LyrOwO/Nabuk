@@ -171,3 +171,99 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
     );
   }
 }
+
+class BookListPage extends StatelessWidget {
+  final List<Map<String, dynamic>> books;
+
+  BookListPage({required this.books});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Liste des livres"),
+        backgroundColor: Color.fromRGBO(211, 180, 156, 50),
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: () async {
+          final userId = await TokenService.getUserId();
+          final allBooks = await ApiService.fetchBooks();
+          // Filtre strict sur l'id utilisateur (cast en string pour éviter les soucis de type)
+          return allBooks.where((book) => book['added_by_id'].toString() == userId.toString()).toList();
+        }(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+          final books = snapshot.data!;
+          return ListView.builder(
+            itemCount: books.length,
+            itemBuilder: (context, index) {
+              final book = books[index];
+              return ListTile(
+                leading: (book['image_link_thumbnail'] != null && book['image_link_thumbnail'] != '')
+                    ? Image.network(
+                        book['image_link_thumbnail'],
+                        width: 50,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image),
+                      )
+                    : Icon(Icons.book),
+                title: Text(book['title'] ?? ''),
+                subtitle: Text(book['author_name'] ?? ''),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BookDetailPage(book: book),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class BookDetailPage extends StatelessWidget {
+  final Map<String, dynamic> book;
+
+  BookDetailPage({required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(book['title'] ?? ''),
+        backgroundColor: Color.fromRGBO(211, 180, 156, 50),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (book['image_link_medium'] != null && book['image_link_medium'] != '')
+              Image.network(
+                book['image_link_medium'],
+                height: 200,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, size: 80),
+              ),
+            SizedBox(height: 16),
+            Text(book['title'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+            SizedBox(height: 8),
+            Text(book['author_name'] ?? '', style: TextStyle(fontStyle: FontStyle.italic)),
+            SizedBox(height: 16),
+            Text("Description :", style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(book['description'] ?? ''),
+            SizedBox(height: 16),
+            Text("Détails supplémentaires :", style: TextStyle(fontWeight: FontWeight.bold)),
+            Text("Nombre de pages : ${book['page_count'] ?? 'Inconnu'}"),
+            // Ajoutez d'autres détails si nécessaire
+          ],
+        ),
+      ),
+    );
+  }
+}
