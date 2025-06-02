@@ -301,19 +301,21 @@ class ApiService {
       final userId = bookData['added_by_id'];
       final userIri = '/api/users/$userId';
 
+      // Correction : vérifie que les champs image sont bien transmis dans le payload
       final payload = {
         'industry_identifiers_identifier': bookData['industry_identifiers_identifier'],
         'title': bookData['title'],
         'subtitle': bookData['subtitle'],
         'description': bookData['description'],
         'page_count': bookData['page_count'],
-        'image_link_medium': bookData['image_link_medium'],
-        'image_link_thumbnail': bookData['image_link_thumbnail'],
+        // Correction : les clés doivent correspondre exactement à celles attendues par ton entité backend
+        'imageLinkMedium': bookData['image_link_medium'] ?? '',
+        'imageLinkThumbnail': bookData['image_link_thumbnail'] ?? '',
         'author': authorIri,
-        'addedBy': userIri, // <-- IRI attendu par API Platform
+        'addedBy': userIri,
       };
 
-      print("Payload du livre avec auteur : $payload");
+      print("Payload du livre avec auteur : $payload"); // Vérifie ici que les liens image sont bien présents
 
       final token = await TokenService.getToken();
       if (token == null) {
@@ -368,9 +370,9 @@ class ApiService {
             'title': (book['title'] ?? 'Titre non disponible').toString(),
             'author': (book['author'] ?? 'Auteur inconnu').toString(),
             'description': (book['description'] ?? 'Description non disponible').toString(),
-            'image_link_thumbnail': (book['image_link_thumbnail'] ?? '').toString(),
+            'imageLinkThumbnail': book['imageLinkThumbnail'] ?? '',
+            'imageLinkMedium': book['imageLinkMedium'] ?? '',
             'author_name': book['author_name'],
-            // Correction ici : récupère bien le champ depuis l'API
             'added_by_id': book['addedBy'] != null
                 ? (book['addedBy'] is String
                     ? book['addedBy'].split('/').last

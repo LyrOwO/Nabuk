@@ -51,19 +51,20 @@ class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
       }
 
       setState(() {
+        // Correction : Google Books ne fournit pas 'medium', il faut utiliser 'thumbnail' et 'smallThumbnail'
+        final imageLinks = bookInfo['imageLinks'];
         scannedBook = {
           'industry_identifiers_identifier': scannedCode,
           'title': bookInfo['title'] ?? 'Titre non disponible',
           'subtitle': '', // ou bookInfo['subtitle'] ?? ''
           'description': bookInfo['description'] ?? bookInfo['searchInfo']?['textSnippet'] ?? '',
           'page_count': bookInfo['pageCount'] ?? 0,
-          'image_link_medium': bookInfo['imageLinks']?['medium']
-              ?? bookInfo['imageLinks']?['thumbnail']
-              ?? bookInfo['imageLinks']?['smallThumbnail']
-              ?? '',
-          'image_link_thumbnail': bookInfo['imageLinks']?['thumbnail']
-              ?? bookInfo['imageLinks']?['smallThumbnail']
-              ?? '',
+          'image_link_medium': imageLinks != null && imageLinks['thumbnail'] != null
+              ? imageLinks['thumbnail']
+              : (imageLinks != null && imageLinks['smallThumbnail'] != null ? imageLinks['smallThumbnail'] : ''),
+          'image_link_thumbnail': imageLinks != null && imageLinks['smallThumbnail'] != null
+              ? imageLinks['smallThumbnail']
+              : (imageLinks != null && imageLinks['thumbnail'] != null ? imageLinks['thumbnail'] : ''),
           'author_name': (bookInfo['authors'] != null && bookInfo['authors'].isNotEmpty)
               ? bookInfo['authors'][0]
               : 'Auteur inconnu',

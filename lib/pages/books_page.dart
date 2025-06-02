@@ -9,13 +9,32 @@ class BooksPage extends StatefulWidget {
 }
 
 class _BooksPageState extends State<BooksPage> {
-  List<Map<String, dynamic>> books = []; // Changer le type en Map<String, dynamic>
+  List<Map<String, dynamic>> books = [];
   bool isLoading = true;
+  int _currentMax = 20; // Nombre de livres à afficher initialement et à chaque scroll
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _fetchBooks();
+    _scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 100 && !isLoading) {
+      setState(() {
+        if (_currentMax < books.length) {
+          _currentMax += 20; // Charge 20 livres de plus à chaque fois
+        }
+      });
+    }
   }
 
   Future<void> _fetchBooks() async {
@@ -33,7 +52,7 @@ class _BooksPageState extends State<BooksPage> {
 
       if (mounted) {
         setState(() {
-          books = userBooks.take(10).toList();
+          books = userBooks;
           isLoading = false;
         });
       }
@@ -62,17 +81,23 @@ class _BooksPageState extends State<BooksPage> {
           : books.isEmpty
               ? Center(child: Text('Aucun livre disponible.'))
               : ListView.builder(
+                  controller: _scrollController,
                   padding: const EdgeInsets.all(16.0),
-                  itemCount: books.length,
+                  itemCount: (_currentMax < books.length) ? _currentMax : books.length,
                   itemBuilder: (context, index) {
+                    if (index >= books.length) return null;
                     final book = books[index];
                     final authorName = book['author_name'] ?? 'Auteur inconnu';
+                    // Affiche imageLinkThumbnail en priorité, sinon imageLinkMedium
+                    final imageUrl = book['imageLinkThumbnail'] != null && book['imageLinkThumbnail'] != ''
+                        ? book['imageLinkThumbnail']
+                        : (book['imageLinkMedium'] ?? '');
 
                     return BookCard(
                       title: book['title'] ?? 'Titre non disponible',
-                      author: authorName, // Affiche le nom de l'auteur
-                      imageUrl: book['image_link_thumbnail'], // Ajoutez l'URL de l'image
-                      description: book['description'] ?? 'Description non disponible', // Ajoutez la description
+                      author: authorName,
+                      imageUrl: imageUrl,
+                      description: book['description'] ?? 'Description non disponible',
                     );
                   },
                 ),
