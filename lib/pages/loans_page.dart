@@ -53,14 +53,14 @@ class _LoansPageState extends State<LoansPage> {
                     return Card(
                       child: ListTile(
                         title: Text(
-                          loan['name_pret'], // Display the loan name
+                          loan['name_pret']?.toString() ?? '', // Sécurise le champ
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Date de début : ${loan['date_debut_pret'].split('T')[0]}'),
-                            Text('Date de fin : ${loan['date_fin_pret'].split('T')[0]}'),
+                            Text('Date de début : ${(loan['date_debut_pret'] ?? '').toString().split('T')[0]}'),
+                            Text('Date de fin : ${(loan['date_fin_pret'] ?? '').toString().split('T')[0]}'),
                           ],
                         ),
                         trailing: IconButton(
