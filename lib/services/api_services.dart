@@ -412,6 +412,13 @@ class ApiService {
           'name_pret': loan['name_pret'],
           'date_debut_pret': loan['date_debut_pret'],
           'date_fin_pret': loan['date_fin_pret'],
+          // Ajoute le mapping pour created_by_id depuis createdBy (IRI)
+          'created_by_id': loan['createdBy'] != null
+              ? (loan['createdBy'] is String
+                  ? loan['createdBy'].split('/').last
+                  : loan['createdBy'].toString())
+              : (loan['created_by_id']?.toString() ?? ''),
+          // ...autres champs si besoin...
         }));
       } else {
         throw Exception('Erreur lors de la récupération des prêts : ${response.body}');
@@ -440,7 +447,22 @@ class ApiService {
         if (data['member'] == null || data['member'] is! List) {
           return [];
         }
-        return List<Map<String, dynamic>>.from(data['member']);
+        final shelves = data['member'] as List;
+        return shelves.map<Map<String, dynamic>>((shelf) {
+          return {
+            // ...autres champs...
+            'id': shelf['id'],
+            'name': shelf['name'],
+            'date_creation': shelf['date_creation'],
+            // Correction ici : extrait owner_id depuis l'IRI owner
+            'owner_id': shelf['owner'] != null
+                ? (shelf['owner'] is String
+                    ? shelf['owner'].split('/').last
+                    : shelf['owner'].toString())
+                : (shelf['owner_id']?.toString() ?? ''),
+            // ...autres champs si besoin...
+          };
+        }).toList();
       } else {
         throw Exception('Erreur lors de la récupération des étagères : ${response.body}');
       }

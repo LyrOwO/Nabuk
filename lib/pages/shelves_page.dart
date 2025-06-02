@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_services.dart';
 import 'shelf_books_page.dart';
 import '../widgets/footer_navigation.dart';
+import '../services/token_service.dart'; // Ajoute cette ligne pour importer TokenService
 
 class ShelvesPage extends StatefulWidget {
   @override
@@ -14,7 +15,21 @@ class _ShelvesPageState extends State<ShelvesPage> {
   @override
   void initState() {
     super.initState();
-    _shelvesFuture = ApiService.fetchShelves(); // Récupérer les étagères
+    _shelvesFuture = _fetchUserShelves(); // Utilise la méthode filtrée
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchUserShelves() async {
+    final allShelves = await ApiService.fetchShelves();
+    final userId = await TokenService.getUserId();
+    if (userId == null) return [];
+
+    // Filtre strict : ne retourne que les étagères de l'utilisateur connecté
+    List<Map<String, dynamic>> userShelves = allShelves.where((shelf) =>
+      shelf['owner_id'] != null &&
+      shelf['owner_id'].toString().trim() == userId.toString().trim()
+    ).toList();
+
+    return userShelves;
   }
 
   @override

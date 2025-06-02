@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_services.dart';
+import '../services/token_service.dart'; // Ajoute cette ligne si pas déjà présente
 import '../widgets/footer_navigation.dart';
 
 class LoansPage extends StatefulWidget {
@@ -14,14 +15,28 @@ class _LoansPageState extends State<LoansPage> {
   @override
   void initState() {
     super.initState();
-    _fetchLoans(); // Fetch loans when the page loads
+    _fetchUserLoans(); // Appelle la méthode filtrée
   }
 
-  Future<void> _fetchLoans() async {
+  Future<void> _fetchUserLoans() async {
     try {
       final fetchedLoans = await ApiService.fetchLoans(); // Fetch loans from the API
+      final userId = await TokenService.getUserId();
+      if (userId == null) {
+        setState(() {
+          loans = [];
+          isLoading = false;
+        });
+        return;
+      }
+      // Filtre pour ne garder que les prêts créés par l'utilisateur connecté
+      final userLoans = fetchedLoans.where((loan) =>
+        loan['created_by_id'] != null &&
+        loan['created_by_id'].toString().trim() == userId.toString().trim()
+      ).toList();
+
       setState(() {
-        loans = fetchedLoans;
+        loans = userLoans;
         isLoading = false;
       });
     } catch (e) {
